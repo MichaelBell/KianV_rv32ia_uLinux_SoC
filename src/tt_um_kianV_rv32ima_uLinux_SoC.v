@@ -29,6 +29,7 @@ module tt_um_kianV_rv32ima_uLinux_SoC (
   wire ce1;
   wire sclk_ram;
   wire sclk_nor;
+  wire sclk_pmod;
 
   wire clk_osc = clk;
 
@@ -48,8 +49,8 @@ module tt_um_kianV_rv32ima_uLinux_SoC (
   assign {sio3_i, sio2_i, sio1_so_miso_i, sio0_si_mosi_i} = ui_in[0] ? {uio_in[5:4], uio_in[2:1]} : uio_in[4:1];
 
   // CE0 is RAM, CE1 is NOR Flash
-  assign uio_out = ui_in[0] ? {1'b1, ce0, sio3_o, sio2_o, sclk_ram & sclk_nor, sio1_so_miso_o, sio0_si_mosi_o, ce1} : // TT QSPI PMOD
-                              {sclk_nor, ce1, sclk_ram, sio3_o, sio2_o, sio1_so_miso_o, sio0_si_mosi_o, ce0};         // Kian PMOD
+  assign uio_out = ui_in[0] ? {1'b1, ce0, sio3_o, sio2_o, sclk_pmod, sio1_so_miso_o, sio0_si_mosi_o, ce1} :    // TT QSPI PMOD
+                              {sclk_nor, ce1, sclk_ram, sio3_o, sio2_o, sio1_so_miso_o, sio0_si_mosi_o, ce0};  // Kian PMOD
 
   soc soc_I (
       .clk_osc (clk_osc),
@@ -72,6 +73,7 @@ module tt_um_kianV_rv32ima_uLinux_SoC (
 
       .sio_oe(sio_oe),
       .sclk_nor(sclk_nor),
+      .sclk_pmod(sclk_pmod),
       .rst_n(rst_n)
   );
 

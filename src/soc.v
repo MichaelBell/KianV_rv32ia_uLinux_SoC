@@ -27,6 +27,7 @@ module soc (
     output wire       sclk_ram,
     output wire       ce1,
     output wire       sclk_nor,
+    output wire       sclk_pmod,
 
     input wire sio0_si_mosi_i,
     input wire sio1_so_miso_i,
@@ -54,6 +55,7 @@ module soc (
 
   assign sclk_nor = spi_nor_mem_valid ? sclk : 1'b1;
   assign sclk_ram = mem_sdram_valid ? sclk : 1'b1;
+  assign sclk_pmod = (spi_nor_mem_valid || mem_sdram_valid) ? sclk : 1'b1;
 
 
   assign led = PC[16+:7];
