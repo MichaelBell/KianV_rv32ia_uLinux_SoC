@@ -11,12 +11,15 @@ that can be driven / tested by the cocotb test.py
 
 // testbench is controlled by test.py
 module tb ();
+  // Whether to use the Kian PMOD or TT PMOD pinout
+  reg use_kian_pmod;
+  initial use_kian_pmod = 1'b1;
 
   // wire up the inputs and outputs
   reg clk;
   reg rst_n;
   reg ena;
-  wire [7:0] ui_in = {4'b0, uart_rx, 3'b0};
+  wire [7:0] ui_in = {4'b0, uart_rx, 2'b0, !use_kian_pmod};
   wire [7:0] uio_in;
 
   wire [7:0] uo_out;
@@ -44,17 +47,18 @@ module tb ();
 
   wire spi_clk_nor;
   wire spi_clk_psram;
-  assign #10 spi_clk_nor = uio_out[7];
-  assign spi_clk_psram = uio_out[5];
+  assign #10 spi_clk_nor = use_kian_pmod ? uio_out[7] : uio_out[3];
+  assign spi_clk_psram = use_kian_pmod ? uio_out[5] : uio_out[3];
 
-  wire spi_ce0 = uio_out[0];
-  wire spi_ce1 = uio_out[6];
+  wire spi_ce0 = use_kian_pmod ? uio_out[0] : uio_out[6];
+  wire spi_ce1 = use_kian_pmod ? uio_out[6] : uio_out[0];
 
-  wire spi_io3 = uio_oe[4] ? uio_out[4] : 'z;
-  wire spi_io2 = uio_oe[3] ? uio_out[3] : 'z;
+  wire spi_io3 = use_kian_pmod ? (uio_oe[4] ? uio_out[4] : 'z) : (uio_oe[5] ? uio_out[5] : 'z);
+  wire spi_io2 = use_kian_pmod ? (uio_oe[3] ? uio_out[3] : 'z) : (uio_oe[4] ? uio_out[4] : 'z);
   wire spi_io1 = uio_oe[2] ? uio_out[2] : 'z;
   wire spi_io0 = uio_oe[1] ? uio_out[1] : 'z;
-  assign uio_in = {uio_out[7:5], spi_io3, spi_io2, spi_io1, spi_io0, uio_out[0]};
+  assign uio_in = use_kian_pmod ? {uio_out[7:5], spi_io3, spi_io2, spi_io1, spi_io0, uio_out[0]} :
+                                  {uio_out[7:6], spi_io3, spi_io2, uio_out[3], spi_io1, spi_io0, uio_out[0]};
 
   spiflash #(
       // change the hex file to match your project

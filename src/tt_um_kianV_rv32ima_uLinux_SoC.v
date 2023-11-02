@@ -42,9 +42,14 @@ module tt_um_kianV_rv32ima_uLinux_SoC (
 
   assign uart_rx = ui_in[3];
 
-  assign uio_oe = {3'b111, sio_oe  /*[3:0]*/, 1'b1};
-  assign {sio3_i, sio2_i, sio1_so_miso_i, sio0_si_mosi_i} = uio_in[4:1];
-  assign uio_out = {sclk_nor, ce1, sclk_ram, sio3_o, sio2_o, sio1_so_miso_o, sio0_si_mosi_o, ce0};
+  // This allows different PMOD pinouts to be used depending on whether ui_in[0] is high or low.
+  assign uio_oe = ui_in[0] ? {2'b11, sio_oe[3:2], 1'b1, sio_oe[1:0], 1'b1} : // TT QSPI PMOD
+                             {3'b111, sio_oe  /*[3:0]*/, 1'b1};              // Kian PMOD
+  assign {sio3_i, sio2_i, sio1_so_miso_i, sio0_si_mosi_i} = ui_in[0] ? {uio_in[5:4], uio_in[2:1]} : uio_in[4:1];
+
+  // CE0 is RAM, CE1 is NOR Flash
+  assign uio_out = ui_in[0] ? {1'b1, ce0, sio3_o, sio2_o, sclk_ram & sclk_nor, sio1_so_miso_o, sio0_si_mosi_o, ce1} : // TT QSPI PMOD
+                              {sclk_nor, ce1, sclk_ram, sio3_o, sio2_o, sio1_so_miso_o, sio0_si_mosi_o, ce0};         // Kian PMOD
 
   soc soc_I (
       .clk_osc (clk_osc),
